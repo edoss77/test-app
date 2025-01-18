@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  # Traefik Load Balancer
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    command:
+      - --api.insecure=true
+      - --providers.docker
+    ports:
+      - "80:80"          # HTTP
+      - "8080:8080"      # Traefik Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # First Hello World App
+  app1:
+    image: hello-world-app1
+    build: .
+    labels:
+      - "traefik.http.routers.app1.rule=Host(`app1.localhost`)"
+      - "traefik.http.services.app1.loadbalancer.server.port=80"
+
+  # Second Hello World App (same image, different name)
+  app2:
+    image: hello-world-app2
+    build: .
+    labels:
+      - "traefik.http.routers.app2.rule=Host(`app2.localhost`)"
+      - "traefik.http.services.app2.loadbalancer.server.port=80"
